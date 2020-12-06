@@ -1,0 +1,216 @@
+@extends('backend.master')
+
+@section('content')
+
+<div class="container-fluid">
+    <div class="card mt-3">
+        <div class="card-header bg-info text-white">
+            Edit Product
+        </div>
+        <div class="card-body">
+            <form action="{{url('update/product')}}" method="POST" enctype="multipart/form-data">
+            @csrf  
+
+            <input type="hidden" value="{{ $product->id}}" name="product_id">
+            <div class="row">
+                <div class="col-lg-8">
+                <div class="row">
+                <div class="col-lg-4">
+          
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select class="form-control" name="category_id" id="category_id" require>
+                            <option value="{{$product->category_id}}"></option>
+                            
+                            @foreach($data as $item)
+
+                                <option value="{{$item->id}}">{{$item->catagory_name}}</option>
+
+                            @endforeach
+                            
+                        </select>
+                    </div>
+
+                </div>
+                <div class="col-lg-4">
+                        
+                    <div class="form-group">
+                        <label>SubCategory</label>
+                        <select class="form-control" name="subcategory_id" id="subcategory_id">
+                        <option disabled value="{{$product->subcategory_id}}"></option>
+                        </select>
+                    </div>
+        
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" class="form-control" value="{{$product->name}}" name='name' class="@error('name') is-invalid @enderror" placeholder="Product Name" require>
+                    </div>
+                                @error('name')
+                                    <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-lg-12">
+                <label>Description</label>
+                    <!-- <textarea name="description" class="form-control" placeholder="Description" required> -->
+                    <textarea name="description" value="" class="form-control my-editor">{{$product->description}}</textarea>
+                    </textarea>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row mt-3">
+                    <div class="col-lg-3"> 
+                        <label >Previous Image:</label>
+                        @if($product->image !=null)
+                            <img src="{{url($product->image)}}" alt="">
+                        @endif
+                    </div>
+                
+                </div>
+                
+            </div>
+
+
+            <div class="row mt-3">
+                <div class="col-lg-4">
+                    <label>Image:</label>
+                    <input type="file" onchange="document.getElementById('img').src=window.URL.createObjectURL(this.files[0])" class="form-control" name="image" required>
+                    <img id='img' alt="" class="form-fluid mt-1">
+                </div>
+
+                <div class="col-lg-4">
+                    <label>Stock:</label>
+                    <input type="number" value="{{$product->stock}}" class="form-control" name="stock" required>
+                </div>
+
+                <div class="col-lg-4">
+                    <label>Price(In Taka):</label>
+                    <input type="number" value="{{$product->price}}" class="form-control" name="price" required>
+                </div>
+            </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="form-group">
+                        <label >Multiple Image (Max:(5))</label>
+                        <input type="file" class="form-control" id="upload_image" name="photo[]" onchange="priview_image()" accept=".jpg,.JPG,.png,.jpeg" multiple>
+                            <div id="priview_image">
+
+                            </div>
+                    </div>
+
+
+                </div>
+            </div>  
+            
+
+            <div class="row mt-4">
+                <div class="col-lg-12 text-center">
+                        <input type="submit" value="Update" class="btn btn-success rounded">
+                </div>
+            </div>
+
+
+                
+
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
+
+@section('footer_js')
+<script>
+    function priview_image(){
+        let total_file=document.getElementById("upload_image").files.length;
+        if(total_file<5){
+            for(var i=0;i<total_file;i++){
+                $('#priview_image').append("<img src='"+URL.createObjectURL(event.target.files[i])+"'><br>");
+            }
+        }
+        else{
+            $('#priview_image').append('<h5>Dont upload more then 5</h5>');
+        }
+    }
+</script>
+
+
+<script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+<script>
+  var editor_config = {
+    path_absolute : "/",
+    selector: "textarea.my-editor",
+    plugins: [
+      "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+      "searchreplace wordcount visualblocks visualchars code fullscreen",
+      "insertdatetime media nonbreaking save table contextmenu directionality",
+      "emoticons template paste textcolor colorpicker textpattern"
+    ],
+    toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media",
+    relative_urls: false,
+    file_browser_callback : function(field_name, url, type, win) {
+      var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+      var y = window.innerHeight|| document.documentElement.clientHeight|| document.getElementsByTagName('body')[0].clientHeight;
+
+      var cmsURL = editor_config.path_absolute + 'laravel-filemanager?field_name=' + field_name;
+      if (type == 'image') {
+        cmsURL = cmsURL + "&type=Images";
+      } else {
+        cmsURL = cmsURL + "&type=Files";
+      }
+
+      tinyMCE.activeEditor.windowManager.open({
+        file : cmsURL,
+        title : 'Filemanager',
+        width : x * 0.8,
+        height : y * 0.8,
+        resizable : "yes",
+        close_previous : "no"
+      });
+    }
+  };
+
+  tinymce.init(editor_config);
+</script>
+
+
+<script>
+$(document).ready(function() {
+$('#category_id').on('change', function() {
+var type_id = $(this).val();
+if(type_id) {
+$.ajax({
+url: '/find/subcategory/by/category/'+type_id,
+type: "GET",
+data : {"_token":"{{ csrf_token() }}"},
+dataType: "json",
+success:function(data) {
+// console.log(data);
+if(data){
+$('#subcategory_id').empty();
+$('#subcategory_id').focus;
+$('#subcategory_id').append('<option value="">-- Select Sub-Category --</option>');
+$.each(data, function(key, value){
+$('select[name="subcategory_id"]').append('<option value="'+ value.id +'">' + value.name+ '</option>');
+});
+}
+else{
+$('#subcategory_id').empty();
+}
+}
+});
+}else{
+$('#subcategory_id').empty();
+}
+});
+});
+</script>
+
+@endsection
